@@ -1,0 +1,69 @@
+# This file is an illustrative example of a pipeline for deployment
+# It could be automated in something like Github actions or Azure devops pipeline
+# This script is an example of Azure Devops pipeline. If Github actions this file would
+# be under .github/workflows directory
+
+# Define the names and triggers
+# Attach the date and revision number to the deployment
+name: DataPipeline_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
+trigger:
+  branches:
+    include:
+      - main
+      - dev
+
+
+pr:
+  branches:
+    include:
+      - '*'
+
+
+# Do any setup of variables
+parameters:
+  - name: personalToken
+    displayName: Optional personal token for feature branch
+    type: string
+    default: input_token
+
+variables:
+
+  - name: token
+    ${{ if and( notIn( parameters['personalToken'], 'input_token'), notIn( variables['Build.SourceBranchName'], 'main', 'dev' ) )}}:
+      value: ${{ parameters.personalToken }}
+    ${{ else }}:
+      value: $(github_api_token)
+
+# Stages for the deployment pipeline to ensure that unit tests pass before making
+# any kind of deployment
+stages:
+
+  - stage: Build
+    jobs:
+      - job: Build
+
+      - job: Run unit tests
+        steps:
+        - task: UsePythonVersion@0
+          inputs:
+            versionSpec: 3.10
+          displayName: 'Use Python 3.10'
+        # Further tasks and scripts would be setting up the dependencies and environment
+        # to then run the unit tests.
+
+
+  # This deployment would involve for example building the python wheel, uploading
+  # it to an artifacts folder along with configuration files, and deploying the jobs
+  # into something such as databricks
+  - stage: DeployDev
+    dependsOn: Build
+    jobs:
+      - job: Build wheel
+      - job: Deploy wheel and artifacts
+      - job: Deploy jobs
+
+
+  # This would be the same jobs and steps as DeployDev but to the prod environment instead
+  - stage: DeployPrd
+    dependsOn: Build
+

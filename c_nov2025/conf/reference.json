@@ -1,0 +1,9 @@
+{
+  "credentials": {
+    "github_token": "NameOfSecretInKeyVault"
+  },
+  "repos": [
+    "owner1/repo1",
+    "owner2/repo2"
+  ]
+}
