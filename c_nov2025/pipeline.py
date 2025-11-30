@@ -111,6 +111,8 @@ def refine_raw_data(src_path: str) -> None:
             , f.to_timestamp("updated_at").alias("updated_at")
             , f.to_timestamp("closed_at").alias("closed_at")
         )
+        # This is for deduplication
+        .distinct()
         # create a column to indicate the length of time the PR has been open
         .withColumn("days_open",
             f.when(f.col("closed_at").isNull(), f.lit(None))
